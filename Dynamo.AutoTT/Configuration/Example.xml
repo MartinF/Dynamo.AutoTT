@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<configuration>
+	<template name="t4mvc.tt">
+		<trigger pattern="/views/*" />
+		<trigger pattern="/scripts/" />		
+	</template>
+	<template name="other.tt">
+		<trigger pattern=".cs" />
+		<trigger pattern="something.cs" />
+	</template>
+	<template name="somefile.tt">
+		<trigger pattern="*.cs" />
+		<trigger pattern="whatever.cs" />
+	</template>
+</configuration>
