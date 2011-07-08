@@ -10,4 +10,5 @@ _ReSharper*
 *.Publish.xml
 Build/
 NuGet/
+Nuget/
 Local.testsettings

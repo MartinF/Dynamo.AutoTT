@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 
 <configuration>
-	<template name="t4mvc.tt">
+	<template name="t4mvc.tt">	<!--Make sure NAME is REQUIRED - and - ADD some build attribute ? trigger ? onBuild = true/ false - check it is boolean ? -->
 		<trigger pattern="/views/*" />
 		<trigger pattern="/scripts/" />		
 	</template>
-	<template name="other.tt">
+	<template name="other.tt">	<!-- file instead of name ? filename ? -->
 		<trigger pattern=".cs" />
 		<trigger pattern="something.cs" />
 	</template>
