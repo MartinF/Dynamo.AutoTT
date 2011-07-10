@@ -5,6 +5,13 @@ Visual Studio Add-in for automatically running T4 Text Template (TT) files when 
 
 
 
+HOW
+---------
+Install the Add-in (remember to enable it in (Tools->Add-in Manager...)
+Drop a AutoTT.config file anywhere in the project with the configuration.
+
+
+
 CONFIGURATION EXAMPLE
 ---------------------
 	<configuration>
