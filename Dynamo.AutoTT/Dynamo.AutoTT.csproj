@@ -107,6 +107,7 @@
     <Content Include="..\..\..\Documents\Visual Studio 2010\Addins\Dynamo.AutoTT - For Testing.AddIn">
       <Link>Dynamo.AutoTT - For Testing.AddIn</Link>
     </Content>
+    <Content Include="Dynamo.AutoTT.xml" />
     <None Include="Configuration\AutoTT.config">
       <SubType>Designer</SubType>
     </None>
