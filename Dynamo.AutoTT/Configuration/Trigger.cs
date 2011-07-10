@@ -2,8 +2,6 @@
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-// Partial extending the configuration with some simple logic for testing the Trigger
-
 namespace Dynamo.AutoTT
 {
 	[System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.1")]
@@ -25,8 +23,6 @@ namespace Dynamo.AutoTT
 
 		public bool IsMatch(string filename)
 		{
-			// Move this to the constructor ?
-
 			if (_regex == null)
 			{
 				try

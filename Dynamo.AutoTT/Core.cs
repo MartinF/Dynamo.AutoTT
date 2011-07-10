@@ -138,8 +138,6 @@ namespace Dynamo.AutoTT
 			_configurations.Remove(project);
 		}
 
-
-
 		public Configuration LoadConfiguration(ProjectItem configItem)
 		{
 			// TryXxx Pattern instead ?
@@ -149,29 +147,25 @@ namespace Dynamo.AutoTT
 
 			var file = configItem.FileNames[0];
 
-			if (File.Exists(file))
+			using (var reader = new StreamReader(file))
 			{
-				using (var reader = new StreamReader(file))
+				try
 				{
-					try
-					{
-						var serializer = new XmlSerializer(typeof(Configuration));
-						Configuration config = (Configuration)serializer.Deserialize(reader);
+					var serializer = new XmlSerializer(typeof(Configuration));
+					Configuration config = (Configuration)serializer.Deserialize(reader);
 
-						_configurations.Add(configItem.ContainingProject, config);
+					_configurations.Add(configItem.ContainingProject, config);
 
-						return config;
-					}
-					catch (Exception)
-					{
-						MessageBox.Show("AutoTT reporting: Invalid configuration - " + file);
-						return null;
-					}
+					return config;
+				}
+				catch (Exception)
+				{
+					MessageBox.Show("AutoTT reporting: Invalid configuration - " + file);
+					
 				}
 			}
 
-			MessageBox.Show("AutoTT reporting: Error when trying to load the configuration - " + file);
-			return null;	// should never happen - throw exception ?
+			return null;
 		}
 
 		public void TestTriggers(ProjectItem item)
@@ -191,7 +185,6 @@ namespace Dynamo.AutoTT
 			if (file == null)
 				throw new ArgumentNullException("file");
 
-			// Try to get configuration for the project
 			Configuration config;
 			if (_configurations.TryGetValue(project, out config))
 			{
@@ -209,11 +202,8 @@ namespace Dynamo.AutoTT
 		}
 
 
-		// Test triggers could also jsut take in ProjectItem ? 
 
-		// Why not just take in Project and automatically look up configuration ? 
-		// Or just keep in ExecuteTemplate(ProjectItem) ? 
-		
+
 
 		public void ExecuteAllTemplates(Project project, Configuration configuration, bool ifOnBuild = false)
 		{
