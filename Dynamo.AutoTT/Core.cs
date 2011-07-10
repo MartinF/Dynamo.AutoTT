@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -21,7 +20,7 @@ POSSIBLE IMPROVEMENTS
 
 - Could use Solution.FindProjectItem() instead of my own GetItem (the one without recursion) - but would require to prepend either full path or project path ("c:\....\" or "ProjectName\" + Template)
 
-- How to Write tests ?
+- Write tests - Project, ProjectItem and so on are interfaces...
 */
 
 namespace Dynamo.AutoTT
@@ -30,22 +29,23 @@ namespace Dynamo.AutoTT
 	{
 		#region Fields
 		public const string ConfigFile = "AutoTT.config";
-		private readonly Dictionary<Project, Configuration> _configurations = new Dictionary<Project, Configuration>();
+		#endregion
+
+		#region Constructors
+		public Core()
+		{
+			Index = new Index();
+		}
+		#endregion
+
+		#region Properties
+		public Index Index { get; private set; }	
 		#endregion
 
 		#region Methods
-		public bool TryGetConfiguration(Project project, out Configuration configuration)
-		{
-			if (project == null)
-				throw new ArgumentNullException("project");
-
-			return _configurations.TryGetValue(project, out configuration);
-		}
 
 		public Configuration Load(Project project)
 		{
-			// TryXxx pattern instead ?
-
 			if (project == null)
 				throw new ArgumentNullException("project");
 
@@ -53,7 +53,43 @@ namespace Dynamo.AutoTT
 			var configItem = project.GetItem(x => x.IsConfiguration());
 
 			if (configItem != null)
-				return LoadConfiguration(configItem);
+				return Load(configItem);
+
+			return null;
+		}
+
+		public Configuration Load(ProjectItem configurationItem)
+		{
+			if (configurationItem == null)
+				throw new ArgumentNullException("configurationItem");
+
+			var project = configurationItem.ContainingProject;
+
+			// Check if project already have a configuration loaded
+			if (Index.Contains(project))
+			{
+				MessageBox.Show("AutoTT rapporting: A configuration file is already loaded for this project - " + configurationItem.ContainingProject.Name);
+				return null;
+			}
+
+			var file = configurationItem.FileNames[0];
+
+			using (var reader = new StreamReader(file))
+			{
+				try
+				{
+					var serializer = new XmlSerializer(typeof(Configuration));
+					Configuration config = (Configuration)serializer.Deserialize(reader);
+
+					Index.Add(configurationItem, config);
+
+					return config;
+				}
+				catch (Exception)
+				{
+					MessageBox.Show("AutoTT reporting: Invalid configuration - " + file);
+				}
+			}
 
 			return null;
 		}
@@ -63,37 +99,15 @@ namespace Dynamo.AutoTT
 			if (project == null)
 				throw new ArgumentNullException("project");
 
-			_configurations.Remove(project);
+			Index.Remove(project);
 		}
 
-		public Configuration LoadConfiguration(ProjectItem configItem)
+		public void Unload(ProjectItem configurationItem)
 		{
-			// TryXxx Pattern instead ?
+			if (configurationItem == null)
+				throw new ArgumentNullException("configurationItem");
 
-			if (configItem == null)
-				throw new ArgumentNullException("configItem");
-
-			var file = configItem.FileNames[0];
-
-			using (var reader = new StreamReader(file))
-			{
-				try
-				{
-					var serializer = new XmlSerializer(typeof(Configuration));
-					Configuration config = (Configuration)serializer.Deserialize(reader);
-
-					_configurations.Add(configItem.ContainingProject, config);
-
-					return config;
-				}
-				catch (Exception)
-				{
-					MessageBox.Show("AutoTT reporting: Invalid configuration - " + file);
-					
-				}
-			}
-
-			return null;
+			Index.Remove(configurationItem);
 		}
 
 		public void TestTriggers(ProjectItem item)
@@ -113,13 +127,13 @@ namespace Dynamo.AutoTT
 			if (file == null)
 				throw new ArgumentNullException("file");
 
-			Configuration config;
-			if (_configurations.TryGetValue(project, out config))
+			Configuration configuration;
+			if (Index.TryGet(project, out configuration))
 			{
 				var relativePath = Helper.GetRelativePath(project, file);
 
 				// Run through every template and test their triggers to see if there is a match
-				foreach (var template in config.Templates)
+				foreach (var template in configuration.Templates)
 				{
 					var execute = template.Trigger.Any(trigger => trigger.IsMatch(relativePath));
 		
@@ -148,24 +162,22 @@ namespace Dynamo.AutoTT
 			// Try to find it so it can be run
 			var templateItem = project.GetItem(template);
 
+			// Make sure template is found
 			if (templateItem == null)
+			{
 				MessageBox.Show("AutoTT reporting: Could not find template - " + template);
-			else
-				ExecuteTemplate(templateItem);
-		}
+				return;
+			}
 
-		private void ExecuteTemplate(ProjectItem templateItem)
-		{
-			// Check if CustomTool is associated 
+			// Make sure correct Custom Tool is associated
 			if (((string)templateItem.Properties.Item("CustomTool").Value) != "TextTemplatingFileGenerator")
 			{
 				MessageBox.Show("AutoTT reporting: Could not execute the Text Template.\nThe TextTemplatingFileGenerator CustomTool is not associated with the file " + templateItem.FileNames[0]);
+				return;
 			}
-			else
-			{
-				var vsProjectItem = (VSProjectItem)templateItem.Object;
-				vsProjectItem.RunCustomTool();
-			}
+
+			var vsProjectItem = (VSProjectItem)templateItem.Object;
+			vsProjectItem.RunCustomTool();
 		}
 		#endregion
 	}

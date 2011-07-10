@@ -8,7 +8,7 @@ namespace Dynamo.AutoTT
 	{
 		public static Configuration LoadConfigurationAndExecuteAllTemplates(this Core core, ProjectItem configurationItem)
 		{
-			var config = core.LoadConfiguration(configurationItem);
+			var config = core.Load(configurationItem);
 
 			if (config != null)
 				core.ExecuteAllTemplates(configurationItem.ContainingProject, config);

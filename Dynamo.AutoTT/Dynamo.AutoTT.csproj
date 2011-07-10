@@ -57,6 +57,7 @@
     </Compile>
     <Compile Include="Configuration\Configuration.cs" />
     <Compile Include="Configuration\Template.cs" />
+    <Compile Include="Entry.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Configuration\Trigger.cs" />
@@ -64,6 +65,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core.cs" />
+    <Compile Include="Index.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="EnvDTE">
@@ -111,9 +113,9 @@
     <None Include="..\README.markdown">
       <Link>README.markdown</Link>
     </None>
-    <None Include="Configuration\AutoTT.config">
+    <Content Include="Configuration\AutoTT.config.xml">
       <SubType>Designer</SubType>
-    </None>
+    </Content>
     <Content Include="Dynamo.AutoTT.AddIn" />
     <None Include="Configuration\AutoTT.xsd">
       <Generator>MSDataSetGenerator</Generator>
