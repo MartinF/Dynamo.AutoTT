@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml.Serialization;
-using Dynamo.AutoTT.Configuration;
 using EnvDTE;
 using VSLangProj;
 
@@ -13,22 +12,29 @@ using VSLangProj;
 
 // Merge methods - and move to Helper / Extensions
 
+
 // Update Description ? and add to README - 
-	// Automatically runs a TT (Text Templating) file when one of its triggers are saved
-	// Contrary to Xxx it doenst have an infinite loop checking every second
+// Automatically runs a TT (Text Templating) file when one of its triggers are saved
+// Contrary to Xxx it doenst have an infinite loop checking every second
 
 // Add Build option (attribute) to Xsd / Xml for Template node - and add to Connect
 // Also run before Publish ?
 
+
 // Make Console app for build environments - AutoTT.exe /Path/AutoTT.config - Run every template using the TextTransform.exe tool
+
+// Make possible to Execute custom tool using the TextTransform.exe instead so it works without the file/item being part of the project
 
 // Handle multiple saves (just after eachother) - only way seem to be a delay and a queue.
 	// delay for 0.5-1 second and add all to queue - the lock/copy the queue when delay is over and if one of the files triggers a template move on to next template so it isnt executed twice
 	// Bascically just accumlates all saves and make sure that template is only executed 1 time
 
-// Add Async Thread/Task to TestTriggers or ExecuteTemplate - for better performance and no locking
+// Add Async Thread/Task to TestTriggers or ExecuteTemplate - for better performance and no locking ?
 // http://blogs.msdn.com/b/csharpfaq/archive/2010/06/01/parallel-programming-in-net-framework-4-getting-started.aspx
 // http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.aspx
+
+
+
 
 // Nuget
 // GitHub
@@ -50,7 +56,6 @@ using VSLangProj;
 // Or make helper method ?
 
 
-// Make possible to Execute custom tool without it being part of the project (being a project item) ?
 
 // Could cache Template ProjectItem either when loading the configuration or here when found the first time
 // It is unloading when renaming, but will configuration be reset so cache is also reset ?
@@ -61,22 +66,62 @@ using VSLangProj;
 // TEST IsMatch - works when executing files from different folders and only hitting when wanted - regex pattern is used correctly !
 
 
+// Installer T4 Editor eller Devart T4 editor instead of Tangible ?
+
+// Not sure about the xsd/xml Configuration format / naming ?
+
+
+// Rename from AutoTT to AutoT4 ? 
+
+
+// Should all Text Templates be executed when a project is added/loaded to make sure everything is up-to-date ? - Big question
+
+
+// Most can actually be moved out ?
+
+
+// Rename AutoTT.cs to Configuration !? and put in root ? together with other files ?
+// Rename AutoTT.xsd to AutoTT.config.xsd ? 
+// Rename AutoTT.xml to AutoTT.config
+
+
+// Questions/Concerns that need to be resolved:
+// - When should it run the text template ? only when one of the triggers is hit, or also when AutoTT.config file is saved ? and when AutoTT.config is loaded at startup ?
+// - Should TextTemplate be automatically executed when the AutoTT.config file is either loaded, added or saved ?
+
+
+
+// Clean up code - some of it probably shouldnt be part of the core but could be moved to helper/extensions
+
+// Laod and LoadConfiguration as TryLoad ?
+
 namespace Dynamo.AutoTT
 {
-	public class Core
+	internal class Core
 	{
 		#region Fields
 		public const string ConfigFile = "AutoTT.config";	// put where ?	
-		private readonly Dictionary<Project, configuration> _configurations = new Dictionary<Project, configuration>();
+		private readonly Dictionary<Project, Configuration> _configurations = new Dictionary<Project, Configuration>();
 		#endregion
 
 		#region Methods
-		public configuration Load(Project project)
+		public bool TryGetConfiguration(Project project, out Configuration configuration)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
 
+			return _configurations.TryGetValue(project, out configuration);
+		}
+
+		public Configuration Load(Project project)
+		{
+			// TryXxx pattern instead ?
+
+			if (project == null)
+				throw new ArgumentNullException("project");
+
 			// Find Configuration File (search whole project using recursion - so it can be placed anywhere)
+			// Could Solution.FindProjectItem("\project\AutoTT.config") be used instead ?
 			var configItem = project.GetItem(x => x.IsConfiguration());
 
 			if (configItem != null)
@@ -85,8 +130,20 @@ namespace Dynamo.AutoTT
 			return null;
 		}
 
-		public configuration LoadConfiguration(ProjectItem configItem)
+		public void Unload(Project project)
 		{
+			if (project == null)
+				throw new ArgumentNullException("project");
+
+			_configurations.Remove(project);
+		}
+
+
+
+		public Configuration LoadConfiguration(ProjectItem configItem)
+		{
+			// TryXxx Pattern instead ?
+
 			if (configItem == null)
 				throw new ArgumentNullException("configItem");
 
@@ -98,8 +155,8 @@ namespace Dynamo.AutoTT
 				{
 					try
 					{
-						var serializer = new XmlSerializer(typeof(configuration));
-						configuration config = (configuration)serializer.Deserialize(reader);
+						var serializer = new XmlSerializer(typeof(Configuration));
+						Configuration config = (Configuration)serializer.Deserialize(reader);
 
 						_configurations.Add(configItem.ContainingProject, config);
 
@@ -109,7 +166,7 @@ namespace Dynamo.AutoTT
 					{
 						MessageBox.Show("AutoTT reporting: Invalid configuration - " + file);
 						return null;
-					}				
+					}
 				}
 			}
 
@@ -117,41 +174,53 @@ namespace Dynamo.AutoTT
 			return null;	// should never happen - throw exception ?
 		}
 
-		public void Unload(Project project)
+		public void TestTriggers(ProjectItem item)
 		{
-			if (project == null)
-				throw new ArgumentNullException("project");
+			if (item == null)
+				throw new ArgumentNullException("item");
 
-			_configurations.Remove(project);
+			// Only allow physical files to test triggers ? or just dont allow Constants.vsProjectItemKindSolutionItems ?
+			if (item.Kind == Constants.vsProjectItemKindPhysicalFile)
+				TestTriggers(item.ContainingProject, item.FileNames[0]);
 		}
 
 		public void TestTriggers(Project project, string file)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
+			if (file == null)
+				throw new ArgumentNullException("file");
 
 			// Try to get configuration for the project
-			configuration config;
+			Configuration config;
 			if (_configurations.TryGetValue(project, out config))
 			{
 				var relativePath = Helper.GetRelativePath(project, file);
 
 				// Run through every template and test their triggers to see if there is a match
-				foreach (var template in config.Items)
+				foreach (var template in config.Templates)
 				{
-					var execute = template.trigger.Any(trigger => trigger.IsMatch(relativePath));
+					var execute = template.Trigger.Any(trigger => trigger.IsMatch(relativePath));
 		
 					if (execute)
-						ExecuteTemplate(project, template.name);
+						ExecuteTemplate(project, template.Name);
 				}
 			}
 		}
 
-		public void ExecuteAllTemplates(Project project, configuration configuration)
+
+		// Test triggers could also jsut take in ProjectItem ? 
+
+		// Why not just take in Project and automatically look up configuration ? 
+		// Or just keep in ExecuteTemplate(ProjectItem) ? 
+		
+
+		public void ExecuteAllTemplates(Project project, Configuration configuration, bool ifOnBuild = false)
 		{
-			foreach (var template in configuration.Items)
+			foreach (var template in configuration.Templates)
 			{
-				ExecuteTemplate(project, template.name);
+				if (!ifOnBuild || template.OnBuild)
+					ExecuteTemplate(project, template.Name);
 			}
 		}
 
@@ -168,10 +237,6 @@ namespace Dynamo.AutoTT
 
 		private void ExecuteTemplate(ProjectItem templateItem)
 		{
-			// Check if it is to early somehow ? Will something be different than when projet is fully loaded ?
-			// Something is not present when called when project is loading compared to when loaded and triggered by file ?
-
-
 			// Check if CustomTool is associated 
 			if (((string)templateItem.Properties.Item("CustomTool").Value) != "TextTemplatingFileGenerator")
 			{

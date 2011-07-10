@@ -61,10 +61,8 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Configuration\AutoTT.cs">
-      <DependentUpon>AutoTT.xsd</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
+    <Compile Include="Configuration\Configuration.cs" />
+    <Compile Include="Configuration\Template.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Configuration\Trigger.cs" />
@@ -133,25 +131,14 @@
     <Content Include="..\..\..\Documents\Visual Studio 2010\Addins\Dynamo.AutoTT - For Testing.AddIn">
       <Link>Dynamo.AutoTT - For Testing.AddIn</Link>
     </Content>
-    <Content Include="Configuration\Example.xml">
+    <None Include="Configuration\AutoTT.config">
       <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Dynamo.AutoTT.AddIn" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Configuration\AutoTT.xsc">
-      <DependentUpon>AutoTT.xsd</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Dynamo.AutoTT.AddIn" />
     <None Include="Configuration\AutoTT.xsd">
       <Generator>MSDataSetGenerator</Generator>
       <LastGenOutput>AutoTT.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Configuration\AutoTT.xss">
-      <DependentUpon>AutoTT.xsd</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />

@@ -39,26 +39,5 @@
             <param term='custom'>Array of parameters that are host application specific.</param>
             <seealso class='IDTExtensibility2' />
         </member>
-        <member name="T:Dynamo.AutoTT.Configuration.configurationTemplateTrigger">
-            <remarks/>
-        </member>
-        <member name="P:Dynamo.AutoTT.Configuration.configurationTemplateTrigger.pattern">
-            <remarks/>
-        </member>
-        <member name="T:Dynamo.AutoTT.Configuration.configuration">
-            <remarks/>
-        </member>
-        <member name="P:Dynamo.AutoTT.Configuration.configuration.Items">
-            <remarks/>
-        </member>
-        <member name="T:Dynamo.AutoTT.Configuration.configurationTemplate">
-            <remarks/>
-        </member>
-        <member name="P:Dynamo.AutoTT.Configuration.configurationTemplate.trigger">
-            <remarks/>
-        </member>
-        <member name="P:Dynamo.AutoTT.Configuration.configurationTemplate.name">
-            <remarks/>
-        </member>
     </members>
 </doc>
