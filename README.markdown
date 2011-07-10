@@ -1,18 +1,18 @@
 
-WHAT
-------
-Automatically runs a T4 Text Template (TT) file when one of the registered triggers are hit.
+WHAT IS IT
+----------
+Visual Studio Add-in for automatically running T4 Text Template (TT) files when one of the registered triggers are hit.
 
 
 
 CONFIGURATION EXAMPLE
 ---------------------
-<configuration>
-	<template name="T4MVC.tt" onbuild="true" >
-		<trigger pattern="^Controllers\\" />
-		<trigger pattern="^Content\\" />
-	</template>
-</configuration>
+	<configuration>
+		<template name="T4MVC.tt" onbuild="true" >
+			<trigger pattern="^Controllers\\" />
+			<trigger pattern="^Content\\" />
+		</template>
+	</configuration>
 
 * Note the trigger pattern is a regular expression and special characters need to be escaped
 
