@@ -2,105 +2,34 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using EnvDTE;
 using VSLangProj;
 
-// Remove unused VsLandProj references - Vs 2010 and more can also be removed ?
+/* 
+POSSIBLE IMPROVEMENTS
+---------------------
 
-// Merge methods - and move to Helper / Extensions
+- Handle multiple saves (just after eachother) - only way seem to be a delay and a queue.
+	delay for 0.5-1 second and add all event actions to queue - then lock the queue when delay is over and if one of the files triggers a template move on to next template so it isnt executed twice
+	Bascically just accumlates all saves and make sure that template is only executed 1 time
 
+- Add Async Thread/Task to TestTriggers or ExecuteTemplate - for better performance ?
+	http://blogs.msdn.com/b/csharpfaq/archive/2010/06/01/parallel-programming-in-net-framework-4-getting-started.aspx
+	http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.aspx
 
-// Update Description ? and add to README - 
-// Automatically runs a TT (Text Templating) file when one of its triggers are saved
-// Contrary to Xxx it doenst have an infinite loop checking every second
+- Could use Solution.FindProjectItem() instead of my own GetItem (the one without recursion) - but would require to prepend either full path or project path ("c:\....\" or "ProjectName\" + Template)
 
-// Add Build option (attribute) to Xsd / Xml for Template node - and add to Connect
-// Also run before Publish ?
-
-
-// Make Console app for build environments - AutoTT.exe /Path/AutoTT.config - Run every template using the TextTransform.exe tool
-
-// Make possible to Execute custom tool using the TextTransform.exe instead so it works without the file/item being part of the project
-
-// Handle multiple saves (just after eachother) - only way seem to be a delay and a queue.
-	// delay for 0.5-1 second and add all to queue - the lock/copy the queue when delay is over and if one of the files triggers a template move on to next template so it isnt executed twice
-	// Bascically just accumlates all saves and make sure that template is only executed 1 time
-
-// Add Async Thread/Task to TestTriggers or ExecuteTemplate - for better performance and no locking ?
-// http://blogs.msdn.com/b/csharpfaq/archive/2010/06/01/parallel-programming-in-net-framework-4-getting-started.aspx
-// http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.aspx
-
-
-
-
-// Nuget
-// GitHub
-// Vsi Package
-
-// Let Ebbo and T4MVC forum know ... - and what was the name of that guy that is totally crazy about Text Templates
-
-// Build using Release - for NuGet ! How can i install a addin via nuget ?
-
-// TEST with T4MVC template - create configuration with correct triggers for C# MVC /Script/, /Content/, .cs^, .aspx^ ? 
-
-
-// Change Load and LoadConfiguration to TryLoad and TryLoadConfiguration ?
-
-
-
-
-// ALL CONNECT METHODS CALLING LOAD NEED TO CALL ExecuteAllTriggers(Project, configuratuion) !!!!!
-// Or make helper method ?
-
-
-
-// Could cache Template ProjectItem either when loading the configuration or here when found the first time
-// It is unloading when renaming, but will configuration be reset so cache is also reset ?
-
-
-
-
-// TEST IsMatch - works when executing files from different folders and only hitting when wanted - regex pattern is used correctly !
-
-
-// Installer T4 Editor eller Devart T4 editor instead of Tangible ?
-
-// Not sure about the xsd/xml Configuration format / naming ?
-
-
-// Rename from AutoTT to AutoT4 ? 
-
-
-// Should all Text Templates be executed when a project is added/loaded to make sure everything is up-to-date ? - Big question
-
-
-// Most can actually be moved out ?
-
-
-// Rename AutoTT.cs to Configuration !? and put in root ? together with other files ?
-// Rename AutoTT.xsd to AutoTT.config.xsd ? 
-// Rename AutoTT.xml to AutoTT.config
-
-
-// Questions/Concerns that need to be resolved:
-// - When should it run the text template ? only when one of the triggers is hit, or also when AutoTT.config file is saved ? and when AutoTT.config is loaded at startup ?
-// - Should TextTemplate be automatically executed when the AutoTT.config file is either loaded, added or saved ?
-
-
-
-// Clean up code - some of it probably shouldnt be part of the core but could be moved to helper/extensions
-
-// Laod and LoadConfiguration as TryLoad ?
+- How to Write tests ?
+*/
 
 namespace Dynamo.AutoTT
 {
 	internal class Core
 	{
 		#region Fields
-		public const string ConfigFile = "AutoTT.config";	// put where ?	
+		public const string ConfigFile = "AutoTT.config";
 		private readonly Dictionary<Project, Configuration> _configurations = new Dictionary<Project, Configuration>();
 		#endregion
 
@@ -121,7 +50,6 @@ namespace Dynamo.AutoTT
 				throw new ArgumentNullException("project");
 
 			// Find Configuration File (search whole project using recursion - so it can be placed anywhere)
-			// Could Solution.FindProjectItem("\project\AutoTT.config") be used instead ?
 			var configItem = project.GetItem(x => x.IsConfiguration());
 
 			if (configItem != null)
@@ -201,12 +129,13 @@ namespace Dynamo.AutoTT
 			}
 		}
 
-
-
-
-
 		public void ExecuteAllTemplates(Project project, Configuration configuration, bool ifOnBuild = false)
 		{
+			if (project == null)
+				throw new ArgumentNullException("project");
+			if (configuration == null)
+				throw new ArgumentNullException("configuration");
+			
 			foreach (var template in configuration.Templates)
 			{
 				if (!ifOnBuild || template.OnBuild)
@@ -234,18 +163,10 @@ namespace Dynamo.AutoTT
 			}
 			else
 			{
-				// Error messsage if not possible to cast ?
-				var vsProjectItem = templateItem.Object as VSProjectItem;
-				if (vsProjectItem != null)
-					vsProjectItem.RunCustomTool();
-
-				// Or do something like this instead ?
-				//if (!item.IsOpen)
-				//    item.Open();
-				//item.Save();
+				var vsProjectItem = (VSProjectItem)templateItem.Object;
+				vsProjectItem.RunCustomTool();
 			}
 		}
-
 		#endregion
 	}
 }

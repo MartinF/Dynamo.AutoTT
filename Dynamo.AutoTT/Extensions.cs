@@ -2,9 +2,6 @@
 using System.Linq;
 using EnvDTE;
 
-// Faster to use Solution.FindProjectItem() rather than my own GetItem ?
-// Make sure it accepts the url as \Project\Item - else it cant be used.
-
 namespace Dynamo.AutoTT
 {
 	internal static class Extensions
@@ -18,8 +15,6 @@ namespace Dynamo.AutoTT
 
 			return config;
 		}
-
-
 
 		public static bool IsFile(this ProjectItem item)
 		{
