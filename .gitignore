@@ -2,13 +2,13 @@
 obj/
 bin/
 TestResults/
+Build/
+NuGet/
+Nuget/
 _ReSharper*
 *.csproj.user
 *.resharper.user
 *.user
 *.suo
 *.Publish.xml
-Build/
-NuGet/
-Nuget/
 Local.testsettings
