@@ -12,3 +12,5 @@ _ReSharper*
 *.suo
 *.Publish.xml
 Local.testsettings
+*.msi
+*.exe
