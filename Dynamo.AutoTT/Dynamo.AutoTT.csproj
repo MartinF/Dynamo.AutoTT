@@ -106,9 +106,6 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\Documents\Visual Studio 2010\Addins\Dynamo.AutoTT - For Testing.AddIn">
-      <Link>Dynamo.AutoTT - For Testing.AddIn</Link>
-    </Content>
     <Content Include="Dynamo.AutoTT.xml" />
     <None Include="..\README.markdown">
       <Link>README.markdown</Link>
@@ -118,7 +115,6 @@
     </Content>
     <Content Include="Dynamo.AutoTT.AddIn" />
     <None Include="Configuration\AutoTT.xsd">
-      <Generator>MSDataSetGenerator</Generator>
       <LastGenOutput>AutoTT.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </None>
