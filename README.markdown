@@ -7,9 +7,9 @@ Visual Studio Add-in for automatically running T4 Text Template (TT) files when 
 
 HOW
 ---------
-You can install the Add-in by downloading the source code here on GitHub and put it in the Visual Studio addins folder, or by using the installer that can be found here [Dynamo.AutoTT Installer](http://fakeyourbeauty.com/projects/Dynamo.AutoTT.msi) and on Visual Studios Extension Manager (Tools->Extension Manager).
-Enable the add-in in Visual Studio (Tools->Add-in Manager).
-Just create an AutoTT.config file anywhere in the project with the configuration, and it will automatically be loaded.
+You can install the Add-in by downloading the source code here on GitHub and put it in the Visual Studio addins folder, or by using the installer that can be found here [Dynamo.AutoTT Installer](http://fakeyourbeauty.com/projects/Dynamo.AutoTT.msi) and on Visual Studios Extension Manager (Tools->Extension Manager).  
+Enable the add-in in Visual Studio (Tools->Add-in Manager).  
+Just create an AutoTT.config file anywhere in the project with the configuration, and it will automatically be loaded.  
 
 
 
