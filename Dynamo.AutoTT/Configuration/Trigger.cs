@@ -4,6 +4,7 @@ using System.Windows.Forms;
 
 namespace Dynamo.AutoTT
 {
+	/// <remarks/>
 	[System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.1")]
 	[System.SerializableAttribute()]
 	[System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -14,6 +15,7 @@ namespace Dynamo.AutoTT
 		private string _patternField;
 		private Regex _regex;
 
+		/// <remarks/>
 		[System.Xml.Serialization.XmlAttributeAttribute("pattern")]
 		public string Pattern
 		{
@@ -21,6 +23,7 @@ namespace Dynamo.AutoTT
 			set { _patternField = value; }
 		}
 
+		/// <remarks/>
 		public bool IsMatch(string filename)
 		{
 			if (_regex == null)
@@ -31,6 +34,7 @@ namespace Dynamo.AutoTT
 				}
 				catch (Exception)
 				{
+					// Use OutputManager somehow, ioc or let call catch exception
 					MessageBox.Show("AutoTT reporting: Problem parsing the pattern - " + this.Pattern);
 					return false;
 				}

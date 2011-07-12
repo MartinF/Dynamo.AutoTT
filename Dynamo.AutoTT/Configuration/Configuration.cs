@@ -1,6 +1,7 @@
 ﻿
 namespace Dynamo.AutoTT
 {
+	/// <remarks/>
 	[System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.1")]
 	[System.SerializableAttribute()]
 	[System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -11,6 +12,7 @@ namespace Dynamo.AutoTT
 	{
 		private Template[] _templatesField;
 
+		/// <remarks/>
 		[System.Xml.Serialization.XmlElementAttribute("template", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
 		public Template[] Templates
 		{
