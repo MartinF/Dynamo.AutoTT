@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 
@@ -46,12 +47,12 @@ namespace Dynamo.AutoTT
 			return items.Cast<ProjectItem>().FirstOrDefault(item => item.IsFolder(name));
 		}
 
-		public static ProjectItem GetItem(this Project project, string relativeFilename)
+		public static ProjectItem GetRelativeItem(this Project project, string relativeFilename)
 		{
-			return project.ProjectItems != null ? project.ProjectItems.GetItem(relativeFilename) : null;
+			return project.ProjectItems != null ? project.ProjectItems.GetRelativeItem(relativeFilename) : null;
 		}
 
-		public static ProjectItem GetItem(this ProjectItems items, string relativeFilename)
+		public static ProjectItem GetRelativeItem(this ProjectItems items, string relativeFilename)
 		{
 			// Smarter searching than using recusion - accepts relative path to the items
 			// Doesnt support for searching nested items currently
@@ -78,30 +79,24 @@ namespace Dynamo.AutoTT
 			return null;
 		}
 
-		public static ProjectItem GetItem(this Project project, Func<ProjectItem, bool> projection)
+		public static IEnumerable<ProjectItem> GetAllItems(this Project project)
 		{
-			return project.ProjectItems != null ? GetItem(project.ProjectItems, projection) : null;
+			return project.ProjectItems.GetAllItems();
 		}
 
-		public static ProjectItem GetItem(this ProjectItems items, Func<ProjectItem, bool> projection)
+		public static IEnumerable<ProjectItem> GetAllItems(this ProjectItems projectItems)
 		{
-			// Using recursion - find file only by name (without path)
+			// Use Recursion to run through all items
 
-			foreach (ProjectItem item in items)
+			foreach (ProjectItem projectItem in projectItems)
 			{
-				if (projection(item))
-					return item;
+				yield return projectItem;
 
-				if (item.ProjectItems != null)
+				foreach (ProjectItem subItem in GetAllItems(projectItem.ProjectItems))
 				{
-					var nestedItem = GetItem(item.ProjectItems, projection);
-
-					if (nestedItem != null)
-						return nestedItem;
+					yield return subItem;
 				}
 			}
-
-			return null;
 		}
 
 		public static bool WasConfiguration(this ProjectItem item, string oldName)

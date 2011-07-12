@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using EnvDTE;
@@ -10,17 +11,17 @@ using VSLangProj;
 POSSIBLE IMPROVEMENTS
 ---------------------
 
-- Handle multiple saves (just after eachother) - only way seem to be a delay and a queue.
-	delay for 0.5-1 second and add all event actions to queue - then lock the queue when delay is over and if one of the files triggers a template move on to next template so it isnt executed twice
+- Handle multiple saves (just after eachother) 
+	Create thread/task than runs in 0.5-1 second, and store it on the template configuration etc.
+	Just check if there is a task registered already, check if it is started, if it is not either just return or cancel the task/thread and start a new one. 
+	If it is started, wait or put the new one in the queue to be executed when other is finished, or just set the new on to start in 0.5-1 seconds
 	Bascically just accumlates all saves and make sure that template is only executed 1 time
+	
+- Use Async Thread/Task ? - Task.Factory.StartNew(() => {}); - ... but it doesnt seem to make any difference at all, GUI is still blocking.	
+	
+- Could use Solution.FindProjectItem() instead of my own GetRelativeItem - but would require to prepend either full path or project path ("c:\....\" or "ProjectName\" + Template)
 
-- Add Async Thread/Task to TestTriggers or ExecuteTemplate - for better performance ?
-	http://blogs.msdn.com/b/csharpfaq/archive/2010/06/01/parallel-programming-in-net-framework-4-getting-started.aspx
-	http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.aspx
-
-- Could use Solution.FindProjectItem() instead of my own GetItem (the one without recursion) - but would require to prepend either full path or project path ("c:\....\" or "ProjectName\" + Template)
-
-- Write tests - Project, ProjectItem and so on are interfaces...
+- Write tests
 */
 
 namespace Dynamo.AutoTT
@@ -50,7 +51,7 @@ namespace Dynamo.AutoTT
 				throw new ArgumentNullException("project");
 
 			// Find Configuration File (search whole project using recursion - so it can be placed anywhere)
-			var configItem = project.GetItem(x => x.IsConfiguration());
+			var configItem = project.GetAllItems().FirstOrDefault(x => x.IsConfiguration());
 
 			if (configItem != null)
 				return Load(configItem);
@@ -116,7 +117,7 @@ namespace Dynamo.AutoTT
 				throw new ArgumentNullException("item");
 
 			// Only allow physical files to test triggers ? or just dont allow Constants.vsProjectItemKindSolutionItems ?
-			if (item.Kind == Constants.vsProjectItemKindPhysicalFile)
+			if (item.IsFile())
 				TestTriggers(item.ContainingProject, item.FileNames[0]);
 		}
 
@@ -136,7 +137,7 @@ namespace Dynamo.AutoTT
 				foreach (var template in configuration.Templates)
 				{
 					var execute = template.Trigger.Any(trigger => trigger.IsMatch(relativePath));
-		
+
 					if (execute)
 						ExecuteTemplate(project, template.Name);
 				}
@@ -160,7 +161,7 @@ namespace Dynamo.AutoTT
 		private void ExecuteTemplate(Project project, string template)
 		{
 			// Try to find it so it can be run
-			var templateItem = project.GetItem(template);
+			var templateItem = project.GetRelativeItem(template);
 
 			// Make sure template is found
 			if (templateItem == null)
@@ -176,6 +177,7 @@ namespace Dynamo.AutoTT
 				return;
 			}
 
+			// Try/catch ?
 			var vsProjectItem = (VSProjectItem)templateItem.Object;
 			vsProjectItem.RunCustomTool();
 		}
