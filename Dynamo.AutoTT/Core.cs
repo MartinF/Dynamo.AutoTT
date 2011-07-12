@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml.Serialization;
 using EnvDTE;
 using VSLangProj;
@@ -29,6 +27,8 @@ namespace Dynamo.AutoTT
 	internal interface ICore
 	{
 		IIndex Index { get; }
+		IOutputManager Output { get; }
+
 		Configuration Load(Project project);
 		Configuration Load(ProjectItem configurationItem);
 		void Unload(Project project);
@@ -42,7 +42,6 @@ namespace Dynamo.AutoTT
 	{
 		#region Fields
 		public const string ConfigFile = "AutoTT.config";
-		private readonly IOutputManager _output;
 		#endregion
 
 		#region Constructors
@@ -54,16 +53,16 @@ namespace Dynamo.AutoTT
 				throw new ArgumentNullException("output");
 
 			Index = index;
-			_output = output;
+			Output = output;
 		}
 		#endregion
 
 		#region Properties
-		public IIndex Index { get; private set; }	
+		public IIndex Index { get; private set; }
+		public IOutputManager Output { get; private set; }
 		#endregion
 
 		#region Methods
-
 		public Configuration Load(Project project)
 		{
 			if (project == null)
@@ -88,7 +87,7 @@ namespace Dynamo.AutoTT
 			// Check if project already have a configuration loaded
 			if (Index.Contains(project))
 			{
-				MessageBox.Show("AutoTT rapporting: A configuration file is already loaded for this project - " + configurationItem.ContainingProject.Name);
+				Output.Error("A configuration file is already loaded for this project - " + configurationItem.ContainingProject.Name);
 				return null;
 			}
 
@@ -107,7 +106,7 @@ namespace Dynamo.AutoTT
 				}
 				catch (Exception)
 				{
-					MessageBox.Show("AutoTT reporting: Invalid configuration - " + file);
+					Output.Error("Invalid configuration - " + file);
 				}
 			}
 
@@ -185,14 +184,14 @@ namespace Dynamo.AutoTT
 			// Make sure template is found
 			if (templateItem == null)
 			{
-				MessageBox.Show("AutoTT reporting: Could not find template - " + template);
+				Output.Error("Could not find template - " + template);
 				return;
 			}
 
 			// Make sure correct Custom Tool is associated
 			if (((string)templateItem.Properties.Item("CustomTool").Value) != "TextTemplatingFileGenerator")
 			{
-				MessageBox.Show("AutoTT reporting: Could not execute the Text Template.\nThe TextTemplatingFileGenerator CustomTool is not associated with the file " + templateItem.FileNames[0]);
+				Output.Error("Could not execute the Text Template.\nThe TextTemplatingFileGenerator CustomTool is not associated with the file " + templateItem.FileNames[0]);
 				return;
 			}
 

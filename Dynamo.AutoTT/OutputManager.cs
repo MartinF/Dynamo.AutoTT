@@ -3,8 +3,6 @@ using System.Windows.Forms;
 using EnvDTE;
 using EnvDTE80;
 
-// Always append the AutoTT reporting: (maybe even use the application.name reporting: ?
-
 namespace Dynamo.AutoTT
 {
 	internal interface IOutputManager
@@ -17,21 +15,25 @@ namespace Dynamo.AutoTT
 	{
 		private readonly DTE2 _application;
 		private readonly OutputWindowPane _outputPane;
+		private readonly string _name;
 
-		public OutputManager(DTE2 application)
+		public OutputManager(DTE2 application, string name)
 		{
 			if (application == null)
 				throw new ArgumentNullException("application");
-			
-			_application = application;
+			if (name == null)
+				throw new ArgumentNullException("name");
 
-			// Init output window
-			_outputPane = _application.ToolWindows.OutputWindow.GetOutputWindow(_application.Name);
+			_application = application;
+			_name = name;
+
+			// Get output window pane
+			_outputPane = _application.ToolWindows.OutputWindow.GetOutputWindow(_name);
 		}
 
 		public void Error(string text)
 		{
-			MessageBox.Show(text);
+			MessageBox.Show(_name + " reporting:\n" + text);
 		}
 
 		public void Event(string text)
