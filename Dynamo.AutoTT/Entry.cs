@@ -1,8 +1,6 @@
 ﻿using System;
 using EnvDTE;
 
-// Entry vs Record ? 
-
 namespace Dynamo.AutoTT
 {
 	internal class Entry

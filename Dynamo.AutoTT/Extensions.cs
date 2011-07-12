@@ -7,7 +7,8 @@ namespace Dynamo.AutoTT
 {
 	internal static class Extensions
 	{
-		public static Configuration LoadConfigurationAndExecuteAllTemplates(this Core core, ProjectItem configurationItem)
+		// Move to core if needed - currently not in use
+		public static Configuration LoadConfigurationAndExecuteAllTemplates(this ICore core, ProjectItem configurationItem)
 		{
 			var config = core.Load(configurationItem);
 
@@ -16,6 +17,8 @@ namespace Dynamo.AutoTT
 
 			return config;
 		}
+
+
 
 		public static bool IsFile(this ProjectItem item)
 		{
@@ -107,6 +110,25 @@ namespace Dynamo.AutoTT
 		public static bool IsConfiguration(this ProjectItem item)
 		{
 			return item.IsFile(Core.ConfigFile);
+		}
+
+		public static OutputWindowPane GetOutputWindow(this OutputWindow window, string name)
+		{
+			var pane = window.OutputWindowPanes.Cast<OutputWindowPane>().FirstOrDefault(x => x.Name == name);
+
+			if (pane == null)
+			{
+				// create it and select it
+				pane = window.OutputWindowPanes.Add(name);
+				pane.Activate();
+			}
+
+			return pane;
+		}
+
+		public static void OutputStringLine(this OutputWindowPane pane, string text)
+		{
+			pane.OutputString(text + Environment.NewLine);
 		}
 	}
 }

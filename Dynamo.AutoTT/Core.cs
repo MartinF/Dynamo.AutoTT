@@ -26,21 +26,40 @@ POSSIBLE IMPROVEMENTS
 
 namespace Dynamo.AutoTT
 {
-	internal class Core
+	internal interface ICore
+	{
+		IIndex Index { get; }
+		Configuration Load(Project project);
+		Configuration Load(ProjectItem configurationItem);
+		void Unload(Project project);
+		void Unload(ProjectItem configurationItem);
+		void TestTriggers(ProjectItem item);
+		void TestTriggers(Project project, string file);
+		void ExecuteAllTemplates(Project project, Configuration configuration, bool ifOnBuild = false);
+	}
+
+	internal class Core : ICore
 	{
 		#region Fields
 		public const string ConfigFile = "AutoTT.config";
+		private readonly IOutputManager _output;
 		#endregion
 
 		#region Constructors
-		public Core()
+		public Core(IIndex index, IOutputManager output)
 		{
-			Index = new Index();
+			if (index == null)
+				throw new ArgumentNullException("index");
+			if (output == null)
+				throw new ArgumentNullException("output");
+
+			Index = index;
+			_output = output;
 		}
 		#endregion
 
 		#region Properties
-		public Index Index { get; private set; }	
+		public IIndex Index { get; private set; }	
 		#endregion
 
 		#region Methods

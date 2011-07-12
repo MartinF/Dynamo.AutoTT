@@ -66,6 +66,7 @@
     </Compile>
     <Compile Include="Core.cs" />
     <Compile Include="Index.cs" />
+    <Compile Include="OutputManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="EnvDTE">

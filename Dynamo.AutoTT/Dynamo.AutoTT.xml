@@ -39,5 +39,35 @@
             <param term='custom'>Array of parameters that are host application specific.</param>
             <seealso class='IDTExtensibility2' />
         </member>
+        <member name="T:Dynamo.AutoTT.Trigger">
+            <remarks/>
+        </member>
+        <member name="M:Dynamo.AutoTT.Trigger.IsMatch(System.String)">
+            <remarks/>
+        </member>
+        <member name="P:Dynamo.AutoTT.Trigger.Pattern">
+            <remarks/>
+        </member>
+        <member name="T:Dynamo.AutoTT.Template">
+            <remarks/>
+        </member>
+        <member name="M:Dynamo.AutoTT.Template.#ctor">
+            <remarks/>
+        </member>
+        <member name="P:Dynamo.AutoTT.Template.Trigger">
+            <remarks/>
+        </member>
+        <member name="P:Dynamo.AutoTT.Template.Name">
+            <remarks/>
+        </member>
+        <member name="P:Dynamo.AutoTT.Template.OnBuild">
+            <remarks/>
+        </member>
+        <member name="T:Dynamo.AutoTT.Configuration">
+            <remarks/>
+        </member>
+        <member name="P:Dynamo.AutoTT.Configuration.Templates">
+            <remarks/>
+        </member>
     </members>
 </doc>

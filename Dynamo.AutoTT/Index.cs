@@ -4,7 +4,19 @@ using EnvDTE;
 
 namespace Dynamo.AutoTT
 {
-	internal class Index
+	internal interface IIndex
+	{
+		void Add(ProjectItem configurationItem, Configuration configuration);
+		void Remove(Project project);
+		void Remove(ProjectItem configurationItem);
+		bool TryGet(Project project, out Configuration configuration);
+		bool TryGet(Project project, out Entry entry);
+		bool TryGet(ProjectItem configurationItem, out Configuration configuration);
+		bool Contains(Project project);
+		bool Contains(ProjectItem configurationItem);
+	}
+
+	internal class Index : IIndex
 	{
 		#region Fields
 		private readonly Dictionary<Project, Entry> _configurations = new Dictionary<Project, Entry>();
