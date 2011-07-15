@@ -19,7 +19,11 @@ POSSIBLE IMPROVEMENTS
 	
 - Could use Solution.FindProjectItem() instead of my own GetRelativeItem - but would require to prepend either full path or project path ("c:\....\" or "ProjectName\" + Template)
 
+- Verify that Template exists when Configuration is loaded ? 
+
 - Write tests
+
+- Could easily work with any custom tool, just remove check in ExecuteTemplate - Rename project.
 */
 
 namespace Dynamo.AutoTT
@@ -27,15 +31,16 @@ namespace Dynamo.AutoTT
 	internal interface ICore
 	{
 		IIndex Index { get; }
-		IOutputManager Output { get; }
+		IFeedbackManager Feedback { get; }
 
+		void Load(Solution solution);
 		Configuration Load(Project project);
 		Configuration Load(ProjectItem configurationItem);
 		void Unload(Project project);
 		void Unload(ProjectItem configurationItem);
 		void TestTriggers(ProjectItem item);
 		void TestTriggers(Project project, string file);
-		void ExecuteAllTemplates(Project project, Configuration configuration, bool ifOnBuild = false);
+		void ExecuteBuildTemplates(Project project);
 	}
 
 	internal class Core : ICore
@@ -45,24 +50,35 @@ namespace Dynamo.AutoTT
 		#endregion
 
 		#region Constructors
-		public Core(IIndex index, IOutputManager output)
+		public Core(IIndex index, IFeedbackManager feedback)
 		{
 			if (index == null)
 				throw new ArgumentNullException("index");
-			if (output == null)
-				throw new ArgumentNullException("output");
+			if (feedback == null)
+				throw new ArgumentNullException("feedback");
 
 			Index = index;
-			Output = output;
+			Feedback = feedback;
 		}
 		#endregion
 
 		#region Properties
 		public IIndex Index { get; private set; }
-		public IOutputManager Output { get; private set; }
+		public IFeedbackManager Feedback { get; private set; }
 		#endregion
 
 		#region Methods
+		public void Load(Solution solution)
+		{
+			if (solution == null)
+				throw new ArgumentNullException("solution");
+
+			foreach (Project project in solution)
+			{
+				Load(project);
+			}
+		}
+
 		public Configuration Load(Project project)
 		{
 			if (project == null)
@@ -87,7 +103,7 @@ namespace Dynamo.AutoTT
 			// Check if project already have a configuration loaded
 			if (Index.Contains(project))
 			{
-				Output.Error("A configuration file is already loaded for this project - " + configurationItem.ContainingProject.Name);
+				Feedback.Error("A configuration file is already loaded for this project - " + configurationItem.ContainingProject.Name);
 				return null;
 			}
 
@@ -106,7 +122,7 @@ namespace Dynamo.AutoTT
 				}
 				catch (Exception)
 				{
-					Output.Error("Invalid configuration - " + file);
+					Feedback.Error("Invalid configuration - " + file);
 				}
 			}
 
@@ -162,17 +178,22 @@ namespace Dynamo.AutoTT
 			}
 		}
 
-		public void ExecuteAllTemplates(Project project, Configuration configuration, bool ifOnBuild = false)
+		public void ExecuteBuildTemplates(Project project)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
-			if (configuration == null)
-				throw new ArgumentNullException("configuration");
-			
-			foreach (var template in configuration.Templates)
+
+			// Try to get the configuration
+			Configuration config;
+			if (Index.TryGet(project, out config))
 			{
-				if (!ifOnBuild || template.OnBuild)
-					ExecuteTemplate(project, template.Name);
+				// Enumerate all templates
+				foreach (var template in config.Templates)
+				{
+					// Execute if OnBuild is true
+					if (template.OnBuild)
+						ExecuteTemplate(project, template.Name);
+				}
 			}
 		}
 
@@ -184,14 +205,14 @@ namespace Dynamo.AutoTT
 			// Make sure template is found
 			if (templateItem == null)
 			{
-				Output.Error("Could not find template - " + template);
+				Feedback.Error("Could not find template - " + template);
 				return;
 			}
 
 			// Make sure correct Custom Tool is associated
 			if (((string)templateItem.Properties.Item("CustomTool").Value) != "TextTemplatingFileGenerator")
 			{
-				Output.Error("Could not execute the Text Template.\nThe TextTemplatingFileGenerator CustomTool is not associated with the file " + templateItem.FileNames[0]);
+				Feedback.Error("Could not execute the Text Template.\nThe TextTemplatingFileGenerator CustomTool is not associated with the file " + templateItem.FileNames[0]);
 				return;
 			}
 

@@ -7,19 +7,6 @@ namespace Dynamo.AutoTT
 {
 	internal static class Extensions
 	{
-		// Move to core if needed - currently not in use
-		public static Configuration LoadConfigurationAndExecuteAllTemplates(this ICore core, ProjectItem configurationItem)
-		{
-			var config = core.Load(configurationItem);
-
-			if (config != null)
-				core.ExecuteAllTemplates(configurationItem.ContainingProject, config);
-
-			return config;
-		}
-
-
-
 		public static bool IsFile(this ProjectItem item)
 		{
 			return item.Kind == Constants.vsProjectItemKindPhysicalFile;
@@ -112,23 +99,19 @@ namespace Dynamo.AutoTT
 			return item.IsFile(Core.ConfigFile);
 		}
 
-		public static OutputWindowPane GetOutputWindow(this OutputWindow window, string name)
+		public static OutputWindowPane GetPane(this OutputWindowPanes panes, string name)
 		{
-			var pane = window.OutputWindowPanes.Cast<OutputWindowPane>().FirstOrDefault(x => x.Name == name);
+			// Try to get if it already exists
+			var pane = panes.Cast<OutputWindowPane>().FirstOrDefault(x => x.Name == name);
 
 			if (pane == null)
 			{
 				// create it and select it
-				pane = window.OutputWindowPanes.Add(name);
+				pane = panes.Add(name);
 				pane.Activate();
 			}
 
 			return pane;
-		}
-
-		public static void OutputStringLine(this OutputWindowPane pane, string text)
-		{
-			pane.OutputString(text + Environment.NewLine);
 		}
 	}
 }

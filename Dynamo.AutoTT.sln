@@ -5,6 +5,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dynamo.AutoTT", "Dynamo.Aut
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Dynamo.AutoTT.Installer", "Dynamo.AutoTT.Installer\Dynamo.AutoTT.Installer.vdproj", "{26FCB234-6FD0-4C16-BC29-038CF2AEE351}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1140F835-42E2-444E-A556-2E47B1506E75}"
+	ProjectSection(SolutionItems) = preProject
+		README.markdown = README.markdown
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

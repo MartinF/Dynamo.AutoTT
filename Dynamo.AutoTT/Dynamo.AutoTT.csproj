@@ -59,6 +59,7 @@
     <Compile Include="Configuration\Template.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="FeedbackManager.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Configuration\Trigger.cs" />
     <Compile Include="Connect.cs">
@@ -66,7 +67,6 @@
     </Compile>
     <Compile Include="Core.cs" />
     <Compile Include="Index.cs" />
-    <Compile Include="OutputManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="EnvDTE">
@@ -108,9 +108,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Dynamo.AutoTT.xml" />
-    <None Include="..\README.markdown">
-      <Link>README.markdown</Link>
-    </None>
     <Content Include="Configuration\AutoTT.config.xml">
       <SubType>Designer</SubType>
     </Content>
