@@ -7,34 +7,34 @@ namespace Dynamo.AutoTT
 {
 	internal static class Extensions
 	{
-		public static bool IsFile(this ProjectItem item)
+		public static bool IsProjectFile(this ProjectItem item)
 		{
 			return item.Kind == Constants.vsProjectItemKindPhysicalFile;
 		}
 
-		public static bool IsFile(this ProjectItem item, string name, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
+		public static bool IsProjectFile(this ProjectItem item, string name, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
 		{
-			return item.IsFile() && item.Name.Equals(name, comparisonType);
+			return item.IsProjectFile() && item.Name.Equals(name, comparisonType);
 		}
 
-		public static bool IsFolder(this ProjectItem item)
+		public static bool IsProjectFolder(this ProjectItem item)
 		{
 			return item.Kind == Constants.vsProjectItemKindPhysicalFolder;
 		}
 
-		public static bool IsFolder(this ProjectItem item, string name, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
+		public static bool IsProjectFolder(this ProjectItem item, string name, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
 		{
-			return item.IsFolder() && item.Name.Equals(name, comparisonType);
+			return item.IsProjectFolder() && item.Name.Equals(name, comparisonType);
 		}
 
 		public static ProjectItem GetFile(this ProjectItems items, string name)
 		{
-			return items.Cast<ProjectItem>().FirstOrDefault(item => item.IsFile(name));
+			return items.Cast<ProjectItem>().FirstOrDefault(item => item.IsProjectFile(name));
 		}
 
 		public static ProjectItem GetFolder(this ProjectItems items, string name)
 		{
-			return items.Cast<ProjectItem>().FirstOrDefault(item => item.IsFolder(name));
+			return items.Cast<ProjectItem>().FirstOrDefault(item => item.IsProjectFolder(name));
 		}
 
 		public static ProjectItem GetRelativeItem(this Project project, string relativeFilename)
@@ -71,12 +71,18 @@ namespace Dynamo.AutoTT
 
 		public static IEnumerable<ProjectItem> GetAllItems(this Project project)
 		{
-			return project.ProjectItems.GetAllItems();
+			if (project.ProjectItems != null)
+				return project.ProjectItems.GetAllItems();
+
+			return Enumerable.Empty<ProjectItem>();
 		}
 
 		public static IEnumerable<ProjectItem> GetAllItems(this ProjectItems projectItems)
 		{
 			// Use Recursion to run through all items
+
+			if (projectItems == null)		// Will it still continue when this is meet when inside recursion ?
+				yield break;
 
 			foreach (ProjectItem projectItem in projectItems)
 			{
@@ -91,12 +97,12 @@ namespace Dynamo.AutoTT
 
 		public static bool WasConfiguration(this ProjectItem item, string oldName)
 		{
-			return item.IsFile() && Core.ConfigFile.Equals(oldName, StringComparison.OrdinalIgnoreCase);
+			return item.IsProjectFile() && Core.ConfigFile.Equals(oldName, StringComparison.OrdinalIgnoreCase);
 		}
 
 		public static bool IsConfiguration(this ProjectItem item)
 		{
-			return item.IsFile(Core.ConfigFile);
+			return item.IsProjectFile(Core.ConfigFile);
 		}
 
 		public static OutputWindowPane GetPane(this OutputWindowPanes panes, string name)

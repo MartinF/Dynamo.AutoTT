@@ -18,6 +18,7 @@ POSSIBLE IMPROVEMENTS
 - Use Async Thread/Task ? - Task.Factory.StartNew(() => {}); - ... but it doesnt seem to make any difference at all, GUI is still blocking.	
 	
 - Could use Solution.FindProjectItem() instead of my own GetRelativeItem - but would require to prepend either full path or project path ("c:\....\" or "ProjectName\" + Template)
+  Or use System.IO.Directory.GetFiles() ?
 
 - Verify that Template exists when Configuration is loaded ? 
 
@@ -30,12 +31,11 @@ namespace Dynamo.AutoTT
 {
 	internal interface ICore
 	{
-		IIndex Index { get; }
 		IFeedbackManager Feedback { get; }
 
 		void Load(Solution solution);
-		Configuration Load(Project project);
-		Configuration Load(ProjectItem configurationItem);
+		void Load(Project project);
+		void Load(ProjectItem configurationItem);
 		void Unload(Project project);
 		void Unload(ProjectItem configurationItem);
 		void TestTriggers(ProjectItem item);
@@ -47,6 +47,7 @@ namespace Dynamo.AutoTT
 	{
 		#region Fields
 		public const string ConfigFile = "AutoTT.config";
+		private readonly IIndex _index;
 		#endregion
 
 		#region Constructors
@@ -57,13 +58,16 @@ namespace Dynamo.AutoTT
 			if (feedback == null)
 				throw new ArgumentNullException("feedback");
 
-			Index = index;
+			_index = index;
 			Feedback = feedback;
+		}
+		public Core(IFeedbackManager feedback) : this(new Index(), feedback)
+		{
+			// Use default implementation of IIndex
 		}
 		#endregion
 
 		#region Properties
-		public IIndex Index { get; private set; }
 		public IFeedbackManager Feedback { get; private set; }
 		#endregion
 
@@ -79,21 +83,23 @@ namespace Dynamo.AutoTT
 			}
 		}
 
-		public Configuration Load(Project project)
+		public void Load(Project project)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
+
+			// Do not load solution project/items
+			if (project.Kind == Constants.vsProjectKindSolutionItems)
+				return;
 
 			// Find Configuration File (search whole project using recursion - so it can be placed anywhere)
 			var configItem = project.GetAllItems().FirstOrDefault(x => x.IsConfiguration());
 
 			if (configItem != null)
-				return Load(configItem);
-
-			return null;
+				Load(configItem);
 		}
 
-		public Configuration Load(ProjectItem configurationItem)
+		public void Load(ProjectItem configurationItem)
 		{
 			if (configurationItem == null)
 				throw new ArgumentNullException("configurationItem");
@@ -101,10 +107,9 @@ namespace Dynamo.AutoTT
 			var project = configurationItem.ContainingProject;
 
 			// Check if project already have a configuration loaded
-			if (Index.Contains(project))
+			if (_index.Contains(project))
 			{
 				Feedback.Error("A configuration file is already loaded for this project - " + configurationItem.ContainingProject.Name);
-				return null;
 			}
 
 			var file = configurationItem.FileNames[0];
@@ -116,17 +121,13 @@ namespace Dynamo.AutoTT
 					var serializer = new XmlSerializer(typeof(Configuration));
 					Configuration config = (Configuration)serializer.Deserialize(reader);
 
-					Index.Add(configurationItem, config);
-
-					return config;
+					_index.Add(configurationItem, config);
 				}
 				catch (Exception)
 				{
 					Feedback.Error("Invalid configuration - " + file);
 				}
 			}
-
-			return null;
 		}
 
 		public void Unload(Project project)
@@ -134,7 +135,7 @@ namespace Dynamo.AutoTT
 			if (project == null)
 				throw new ArgumentNullException("project");
 
-			Index.Remove(project);
+			_index.Remove(project);
 		}
 
 		public void Unload(ProjectItem configurationItem)
@@ -142,7 +143,7 @@ namespace Dynamo.AutoTT
 			if (configurationItem == null)
 				throw new ArgumentNullException("configurationItem");
 
-			Index.Remove(configurationItem);
+			_index.Remove(configurationItem);
 		}
 
 		public void TestTriggers(ProjectItem item)
@@ -150,8 +151,9 @@ namespace Dynamo.AutoTT
 			if (item == null)
 				throw new ArgumentNullException("item");
 
-			// Only allow physical files to test triggers ? or just dont allow Constants.vsProjectItemKindSolutionItems ?
-			if (item.IsFile())
+			// Only allow physical files which are part of a loaded project to test triggers ? or just dont allow Constants.vsProjectItemKindSolutionItems ?
+			// Move this check to the Connect.Event ? should never do anything if the item saved is not a ProjectFile
+			if (item.IsProjectFile())
 				TestTriggers(item.ContainingProject, item.FileNames[0]);
 		}
 
@@ -163,7 +165,7 @@ namespace Dynamo.AutoTT
 				throw new ArgumentNullException("file");
 
 			Configuration configuration;
-			if (Index.TryGet(project, out configuration))
+			if (_index.TryGet(project, out configuration))
 			{
 				var relativePath = Helper.GetRelativePath(project, file);
 
@@ -185,7 +187,7 @@ namespace Dynamo.AutoTT
 
 			// Try to get the configuration
 			Configuration config;
-			if (Index.TryGet(project, out config))
+			if (_index.TryGet(project, out config))
 			{
 				// Enumerate all templates
 				foreach (var template in config.Templates)
